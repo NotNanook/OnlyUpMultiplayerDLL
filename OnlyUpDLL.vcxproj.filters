@@ -1,0 +1,153 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="dependencies\MinHook\Src\buffer.c">
+      <Filter>Dependencies\Minhook</Filter>
+    </ClCompile>
+    <ClCompile Include="dependencies\MinHook\Src\hde\hde32.c">
+      <Filter>Dependencies\Minhook</Filter>
+    </ClCompile>
+    <ClCompile Include="dependencies\MinHook\Src\hde\hde64.c">
+      <Filter>Dependencies\Minhook</Filter>
+    </ClCompile>
+    <ClCompile Include="dependencies\MinHook\Src\hook.c">
+      <Filter>Dependencies\Minhook</Filter>
+    </ClCompile>
+    <ClCompile Include="dependencies\ImGui\imgui.cpp">
+      <Filter>Dependencies\Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="dependencies\ImGui\imgui_demo.cpp">
+      <Filter>Dependencies\Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="dependencies\ImGui\imgui_draw.cpp">
+      <Filter>Dependencies\Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="dependencies\ImGui\imgui_impl_dx9.cpp">
+      <Filter>Dependencies\Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="dependencies\ImGui\imgui_impl_dx10.cpp">
+      <Filter>Dependencies\Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="dependencies\ImGui\imgui_impl_dx11.cpp">
+      <Filter>Dependencies\Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="dependencies\ImGui\imgui_impl_dx12.cpp">
+      <Filter>Dependencies\Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="dependencies\ImGui\imgui_impl_win32.cpp">
+      <Filter>Dependencies\Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="dependencies\ImGui\imgui_tables.cpp">
+      <Filter>Dependencies\Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="dependencies\ImGui\imgui_widgets.cpp">
+      <Filter>Dependencies\Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="dependencies\MinHook\Src\trampoline.c">
+      <Filter>Dependencies\Minhook</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>Main</Filter>
+    </ClCompile>
+    <ClCompile Include="utility\util.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
+    <ClCompile Include="rendering\DirectX.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="rendering\Gui.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="utility\positionManager.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="dependencies\MinHook\Src\buffer.h">
+      <Filter>Dependencies\Minhook</Filter>
+    </ClInclude>
+    <ClInclude Include="dependencies\MinHook\Src\hde\hde32.h">
+      <Filter>Dependencies\Minhook</Filter>
+    </ClInclude>
+    <ClInclude Include="dependencies\MinHook\Src\hde\hde64.h">
+      <Filter>Dependencies\Minhook</Filter>
+    </ClInclude>
+    <ClInclude Include="dependencies\ImGui\imconfig.h">
+      <Filter>Dependencies\Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="dependencies\ImGui\imgui.h">
+      <Filter>Dependencies\Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="dependencies\ImGui\imgui_impl_dx9.h">
+      <Filter>Dependencies\Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="dependencies\ImGui\imgui_impl_dx10.h">
+      <Filter>Dependencies\Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="dependencies\ImGui\imgui_impl_dx11.h">
+      <Filter>Dependencies\Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="dependencies\ImGui\imgui_impl_dx12.h">
+      <Filter>Dependencies\Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="dependencies\ImGui\imgui_impl_win32.h">
+      <Filter>Dependencies\Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="dependencies\ImGui\imgui_internal.h">
+      <Filter>Dependencies\Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="dependencies\ImGui\imstb_rectpack.h">
+      <Filter>Dependencies\Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="dependencies\ImGui\imstb_textedit.h">
+      <Filter>Dependencies\Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="dependencies\ImGui\imstb_truetype.h">
+      <Filter>Dependencies\Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="dependencies\MinHook\Src\trampoline.h">
+      <Filter>Dependencies\Minhook</Filter>
+    </ClInclude>
+    <ClInclude Include="dependencies\MinHook\Src\hde\table64.h">
+      <Filter>Dependencies\Minhook</Filter>
+    </ClInclude>
+    <ClInclude Include="dependencies\MinHook\Src\hde\pstdint.h">
+      <Filter>Dependencies\Minhook</Filter>
+    </ClInclude>
+    <ClInclude Include="dependencies\MinHook\Src\hde\table32.h">
+      <Filter>Dependencies\Minhook</Filter>
+    </ClInclude>
+    <ClInclude Include="utility\util.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="rendering\DirectX.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="rendering\Gui.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="utility\positionManager.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Dependencies">
+      <UniqueIdentifier>{9952da2d-122d-4680-9e0b-9f9e6afe2a8a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Dependencies\Minhook">
+      <UniqueIdentifier>{f27bbe62-eacf-4dfe-959d-1702ff6030b0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Dependencies\Imgui">
+      <UniqueIdentifier>{0b338650-51c7-4061-a3f9-cd0d945adef3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Main">
+      <UniqueIdentifier>{e5ee0709-ff15-4be3-93a6-e850b446eef7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Util">
+      <UniqueIdentifier>{1daceecc-b56f-486a-9c52-87e4f39cba57}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering">
+      <UniqueIdentifier>{72feed5e-e946-45f1-b63e-a76e6b83bcbd}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
