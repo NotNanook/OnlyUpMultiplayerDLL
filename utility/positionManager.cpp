@@ -14,13 +14,23 @@ WSADATA ws;
 sockaddr_in server;
 int clientSocket;
 
+const std::chrono::nanoseconds targetDuration(50000000);
+std::chrono::time_point<std::chrono::steady_clock> startTime;
+
+void waitPacketSent() {
+	auto elapsedTime = std::chrono::steady_clock::now() - startTime;
+	auto remainingTime = targetDuration - elapsedTime;
+	if (remainingTime > std::chrono::nanoseconds::zero()) {
+		std::this_thread::sleep_for(remainingTime);
+	}
+}
+
 void PositionManager::init() {
 	PositionManager::baseModule = GetModuleHandle("OnlyUP-Win64-Shipping.exe");
 
 }
 
 void PositionManager::networkLoop() {
-	static const std::chrono::nanoseconds targetDuration(50000000);
 	int numPacketsSent = 0;
 
 	struct timeval timeout;
@@ -32,7 +42,7 @@ void PositionManager::networkLoop() {
 	FD_SET(clientSocket, &fds);
 
 	while (true) {
-		auto startTime = std::chrono::steady_clock::now();
+		startTime = std::chrono::steady_clock::now();
 
 		char buffer[sizeof(PositionPacket)] = {};
 		PositionPacket packet = PositionPacket();
@@ -70,6 +80,7 @@ void PositionManager::networkLoop() {
 
 		int result = select(0, &fds, 0, 0, &timeout);
 		if (result == SOCKET_ERROR || result == 0) {
+			waitPacketSent();
 			continue;
 		}
 
@@ -90,14 +101,9 @@ void PositionManager::networkLoop() {
 		PositionManager::m.lock();
 		memcpy(&PositionManager::mirrorPlayer.playerName, &recvPacket.playerName, strlen(recvPacket.playerName));
 		PositionManager::mirrorPlayer.lastPosition = recvPacket.position;
-		printf("X: %f\n", PositionManager::mirrorPlayer.lastPosition.x);
 		PositionManager::m.unlock();
 
-		auto elapsedTime = std::chrono::steady_clock::now() - startTime;
-		auto remainingTime = targetDuration - elapsedTime;
-		if (remainingTime > std::chrono::nanoseconds::zero()) {
-			std::this_thread::sleep_for(remainingTime);
-		}
+		waitPacketSent();
 	}
 
 	PositionManager::disconnect();
