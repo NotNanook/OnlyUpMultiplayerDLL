@@ -2,9 +2,9 @@
 #include <ws2tcpip.h>
 #include <thread>
 #include <chrono>
+#include <future>
 
 #include "positionManager.h"
-#include <future>
 
 #pragma comment(lib,"ws2_32.lib") 
 
@@ -15,7 +15,8 @@ sockaddr_in server;
 int clientSocket;
 
 void PositionManager::init() {
-	PositionManager::baseAddress = (uintptr_t)GetModuleHandle("OnlyUP-Win64-Shipping.exe") + 0x074685C0;
+	PositionManager::baseModule = GetModuleHandle("OnlyUP-Win64-Shipping.exe");
+
 }
 
 void PositionManager::networkLoop() {
@@ -40,7 +41,7 @@ void PositionManager::networkLoop() {
 		memcpy(&packet.playerName, PositionManager::username, sizeof(PositionManager::username));
 
 		// Find player position
-		uintptr_t xCordPointer = util::FindDMAAddy(PositionManager::baseAddress, { 0x48, 0x70, 0x260 });
+		uintptr_t xCordPointer = util::FindDMAAddy(((uintptr_t)PositionManager::baseModule) + 0x074685C0, {0x48, 0x70, 0x260});
 		if (xCordPointer == NULL) { continue; }
 		double xCord = *(double*)xCordPointer;
 		double zCord = *(double*)(xCordPointer + 0x8);
@@ -86,9 +87,11 @@ void PositionManager::networkLoop() {
 			break;
 		}
 
+		PositionManager::m.lock();
 		memcpy(&PositionManager::mirrorPlayer.playerName, &recvPacket.playerName, strlen(recvPacket.playerName));
 		PositionManager::mirrorPlayer.lastPosition = recvPacket.position;
-		printf("Received packet from player: %s\n", PositionManager::mirrorPlayer.playerName);
+		printf("X: %f\n", PositionManager::mirrorPlayer.lastPosition.x);
+		PositionManager::m.unlock();
 
 		auto elapsedTime = std::chrono::steady_clock::now() - startTime;
 		auto remainingTime = targetDuration - elapsedTime;

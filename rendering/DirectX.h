@@ -15,7 +15,7 @@ struct _FrameContext {
 	D3D12_CPU_DESCRIPTOR_HANDLE DescriptorHandle;
 };
 
-class DirectX
+class DirectXHelper
 {
 public:
 	static bool isWindowFocused();

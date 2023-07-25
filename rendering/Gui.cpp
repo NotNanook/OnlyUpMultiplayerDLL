@@ -10,6 +10,8 @@
 ImGuiWindowFlags window_flags = 0;
 ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_None;
 
+int fov = 80;
+
 namespace Gui {
     bool isEnabled = false;
 
@@ -37,12 +39,12 @@ namespace Gui {
                 ImGui::Text("This tab is for joining the multiplayer lobby");
                 ImGui::Separator();
 
-                ImGui::Text("Please enter your username"); ImGui::SameLine(); 
+                ImGui::Text("Please enter your username"); ImGui::SameLine();
                 ImGui::PushItemWidth(-1); setDisabledStyle(PositionManager::connected);
                 ImGui::InputText("##Username", PositionManager::username, IM_ARRAYSIZE(PositionManager::username));
                 ImGui::PopItemWidth(); releaseDisabledStyle(PositionManager::connected);
 
-                ImGui::Text("Please enter the server ip address"); ImGui::SameLine(); 
+                ImGui::Text("Please enter the server ip address"); ImGui::SameLine();
                 ImGui::PushItemWidth(-1); setDisabledStyle(PositionManager::connected);
                 ImGui::InputText("##IP", PositionManager::ipAddress, IM_ARRAYSIZE(PositionManager::ipAddress));
                 ImGui::PopItemWidth(); releaseDisabledStyle(PositionManager::connected);
@@ -52,7 +54,8 @@ namespace Gui {
                     if (strlen(PositionManager::username) != 0) {
                         if (PositionManager::setupNetwork() == 0) {
                             validIP = true;
-                        } else if (PositionManager::setupNetwork() == 3) {
+                        }
+                        else if (PositionManager::setupNetwork() == 3) {
                             validIP = false;
                         }
                         validUsername = true;
@@ -74,6 +77,7 @@ namespace Gui {
             }
             if (ImGui::BeginTabItem("Debug")) {
                 ImGui::Text("X: %f | Y:%f | Z: %f", PositionManager::localPlayerPos.x, PositionManager::localPlayerPos.y, PositionManager::localPlayerPos.z);
+                ImGui::SliderInt("Change Proj. M. FOV", &fov, 70, 180);
                 ImGui::Separator();
             }
             ImGui::EndTabBar();
@@ -83,6 +87,47 @@ namespace Gui {
 
     void drawUi() {
         ImDrawList* drawList = ImGui::GetBackgroundDrawList();
+        if (PositionManager::connected) {
+            uintptr_t pitchPointer = util::FindDMAAddy(((uintptr_t)PositionManager::baseModule + 0x07872B00), { 0x30, 0x308 });
+            if (pitchPointer == NULL) { return; }
+            double pitch = *(double*)pitchPointer;
+            double yaw = *(double*)(pitchPointer + 0x8);
+
+            uintptr_t camPosPointer = util::FindDMAAddy(((uintptr_t)PositionManager::baseModule + 0x07442848), { 0x8, 0x10, 0xB0, 0x6B8, 0x68, 0x18, 0x80 });
+            DirectX::XMVECTOR cameraPosition = DirectX::XMVectorSet(*(float*)(camPosPointer), *(float*)(camPosPointer + 0x40), *(float*)(camPosPointer + 0x20), 1.0f);
+            
+            if (pitch > 260) pitch -= 360;
+            float pitchRad = util::degreesToRadians(pitch);
+            if (yaw < 360 && yaw > 180) yaw -= 360;
+            float yawRad = util::degreesToRadians(yaw);
+
+            float cosYaw = cosf(yawRad);
+            float sinYaw = sinf(yawRad);
+            float cosPitch = cosf(pitchRad);
+            float sinPitch = sinf(pitchRad);
+
+            DirectX::XMVECTOR forward = DirectX::XMVectorSet(cosYaw * cosPitch, sinPitch, sinYaw * cosPitch, 0.0f);
+
+            // Calculate the up vector based on the pitch angle
+            DirectX::XMVECTOR up = DirectX::XMVectorSet(0.0f, cosPitch, 0.0f, 0.0f);
+
+            // Calculate the target position by adding the forward vector to the camera position
+            DirectX::XMVECTOR target = DirectX::XMVectorAdd(cameraPosition, forward);
+
+            // Calculate the view matrix
+            DirectX::XMMATRIX viewMatrix = DirectX::XMMatrixLookAtLH(cameraPosition, target, up);
+
+            DirectX::XMMATRIX projectionMatrix = DirectX::XMMatrixPerspectiveFovLH(util::degreesToRadians(fov), ImGui::GetIO().DisplaySize.x / ImGui::GetIO().DisplaySize.y, 1.0f, 100.0f);
+
+            PositionManager::m.lock();
+            DirectX::XMVECTOR otherPlayerPos = DirectX::XMVectorSet(PositionManager::mirrorPlayer.lastPosition.x, PositionManager::mirrorPlayer.lastPosition.y, PositionManager::mirrorPlayer.lastPosition.z, 1.0f);
+            PositionManager::m.unlock();
+
+            DirectX::XMFLOAT2 screenPos = util::WorldToScreen(otherPlayerPos, viewMatrix, projectionMatrix, ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y);
+
+            drawList->AddCircleFilled(ImVec2(screenPos.x, screenPos.y), 10, ImColor(255, 255, 255, 255));
+
+        }
     }
 
     void setStyle() {

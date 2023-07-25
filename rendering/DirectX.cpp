@@ -3,49 +3,49 @@
 #include "positionManager.h"
 #include <Psapi.h>
 
-bool DirectX::isWindowFocused() {
+bool DirectXHelper::isWindowFocused() {
 	DWORD ForegroundWindowProcessID;
 	GetWindowThreadProcessId(GetForegroundWindow(), &ForegroundWindowProcessID);
 	return GetCurrentProcessId() == ForegroundWindowProcessID;
 }
 
-void DirectX::getWindowInformation() {
+void DirectXHelper::getWindowInformation() {
 	bool WindowFocus = false;
 	while (WindowFocus == false) {
 		DWORD ForegroundWindowProcessID;
 		GetWindowThreadProcessId(GetForegroundWindow(), &ForegroundWindowProcessID);
 		if (GetCurrentProcessId() == ForegroundWindowProcessID) {
 
-			DirectX::ID = GetCurrentProcessId();
-			DirectX::Handle = GetCurrentProcess();
-			DirectX::Hwnd = GetForegroundWindow();
+			DirectXHelper::ID = GetCurrentProcessId();
+			DirectXHelper::Handle = GetCurrentProcess();
+			DirectXHelper::Hwnd = GetForegroundWindow();
 
 			RECT TempRect;
-			GetWindowRect(DirectX::Hwnd, &TempRect);
-			DirectX::WindowWidth = TempRect.right - TempRect.left;
-			DirectX::WindowHeight = TempRect.bottom - TempRect.top;
+			GetWindowRect(DirectXHelper::Hwnd, &TempRect);
+			DirectXHelper::WindowWidth = TempRect.right - TempRect.left;
+			DirectXHelper::WindowHeight = TempRect.bottom - TempRect.top;
 
 			char TempTitle[MAX_PATH];
-			GetWindowText(DirectX::Hwnd, TempTitle, sizeof(TempTitle));
-			DirectX::Title = TempTitle;
+			GetWindowText(DirectXHelper::Hwnd, TempTitle, sizeof(TempTitle));
+			DirectXHelper::Title = TempTitle;
 
 			char TempClassName[MAX_PATH];
-			GetClassName(DirectX::Hwnd, TempClassName, sizeof(TempClassName));
-			DirectX::ClassName = TempClassName;
+			GetClassName(DirectXHelper::Hwnd, TempClassName, sizeof(TempClassName));
+			DirectXHelper::ClassName = TempClassName;
 
 			char TempPath[MAX_PATH];
-			GetModuleFileNameEx(DirectX::Handle, NULL, TempPath, sizeof(TempPath));
-			DirectX::Path = TempPath;
+			GetModuleFileNameEx(DirectXHelper::Handle, NULL, TempPath, sizeof(TempPath));
+			DirectXHelper::Path = TempPath;
 
 			WindowFocus = true;
 		}
 	}
 }
 
-void DirectX::hookDirectX() {
+void DirectXHelper::hookDirectX() {
 	bool InitHook = false;
 	while (InitHook == false) {
-		if (DirectX::Init() == true) {
+		if (DirectXHelper::Init() == true) {
 			util::CreateHook(54, (void**)&oExecuteCommandLists, hkExecuteCommandLists);
 			util::CreateHook(140, (void**)&oPresent, hkPresent);
 			util::CreateHook(84, (void**)&oDrawInstanced, hkDrawInstanced);
@@ -55,7 +55,7 @@ void DirectX::hookDirectX() {
 	}
 }
 
-bool DirectX::Init() {
+bool DirectXHelper::Init() {
 	if (InitWindow() == false) {
 		return false;
 	}
@@ -175,7 +175,7 @@ bool DirectX::Init() {
 	return true;
 }
 
-bool DirectX::InitWindow() {
+bool DirectXHelper::InitWindow() {
 	WindowClass.cbSize = sizeof(WNDCLASSEX);
 	WindowClass.style = CS_HREDRAW | CS_VREDRAW;
 	WindowClass.lpfnWndProc = DefWindowProc;
@@ -196,7 +196,7 @@ bool DirectX::InitWindow() {
 	return true;
 }
 
-bool DirectX::DeleteWindow() {
+bool DirectXHelper::DeleteWindow() {
 	DestroyWindow(WindowHwnd);
 	UnregisterClass(WindowClass.lpszClassName, WindowClass.hInstance);
 	if (WindowHwnd != NULL) {
@@ -205,17 +205,17 @@ bool DirectX::DeleteWindow() {
 	return true;
 }
 
-LRESULT APIENTRY DirectX::WndProcFunc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-	if (DirectX::ShowMenu) {
+LRESULT APIENTRY DirectXHelper::WndProcFunc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+	if (DirectXHelper::ShowMenu) {
 		ImGui_ImplWin32_WndProcHandler(hwnd, uMsg, wParam, lParam);
 		return true;
 	}
-	return CallWindowProc(DirectX::WndProc, hwnd, uMsg, wParam, lParam);
+	return CallWindowProc(DirectXHelper::WndProc, hwnd, uMsg, wParam, lParam);
 }
 
-HRESULT APIENTRY DirectX::hkPresent(IDXGISwapChain3* pSwapChain, UINT SyncInterval, UINT Flags) {
-	if (!DirectX::ImGui_Initialised) {
-		if (SUCCEEDED(pSwapChain->GetDevice(__uuidof(ID3D12Device), (void**)&DirectX::Device))) {
+HRESULT APIENTRY DirectXHelper::hkPresent(IDXGISwapChain3* pSwapChain, UINT SyncInterval, UINT Flags) {
+	if (!DirectXHelper::ImGui_Initialised) {
+		if (SUCCEEDED(pSwapChain->GetDevice(__uuidof(ID3D12Device), (void**)&DirectXHelper::Device))) {
 			ImGui::CreateContext();
 
 			ImGuiIO& io = ImGui::GetIO(); (void)io;
@@ -225,64 +225,64 @@ HRESULT APIENTRY DirectX::hkPresent(IDXGISwapChain3* pSwapChain, UINT SyncInterv
 			DXGI_SWAP_CHAIN_DESC Desc;
 			pSwapChain->GetDesc(&Desc);
 			Desc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-			Desc.OutputWindow = DirectX::Hwnd;
-			Desc.Windowed = ((GetWindowLongPtr(DirectX::Hwnd, GWL_STYLE) & WS_POPUP) != 0) ? false : true;
+			Desc.OutputWindow = DirectXHelper::Hwnd;
+			Desc.Windowed = ((GetWindowLongPtr(DirectXHelper::Hwnd, GWL_STYLE) & WS_POPUP) != 0) ? false : true;
 
-			DirectX::BuffersCounts = Desc.BufferCount;
-			DirectX::FrameContext = new _FrameContext[DirectX::BuffersCounts];
+			DirectXHelper::BuffersCounts = Desc.BufferCount;
+			DirectXHelper::FrameContext = new _FrameContext[DirectXHelper::BuffersCounts];
 
 			D3D12_DESCRIPTOR_HEAP_DESC DescriptorImGuiRender = {};
 			DescriptorImGuiRender.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-			DescriptorImGuiRender.NumDescriptors = DirectX::BuffersCounts;
+			DescriptorImGuiRender.NumDescriptors = DirectXHelper::BuffersCounts;
 			DescriptorImGuiRender.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 
-			if (DirectX::Device->CreateDescriptorHeap(&DescriptorImGuiRender, IID_PPV_ARGS(&DirectX::DescriptorHeapImGuiRender)) != S_OK)
+			if (DirectXHelper::Device->CreateDescriptorHeap(&DescriptorImGuiRender, IID_PPV_ARGS(&DirectXHelper::DescriptorHeapImGuiRender)) != S_OK)
 				return oPresent(pSwapChain, SyncInterval, Flags);
 
 			ID3D12CommandAllocator* Allocator;
-			if (DirectX::Device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&Allocator)) != S_OK)
+			if (DirectXHelper::Device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&Allocator)) != S_OK)
 				return oPresent(pSwapChain, SyncInterval, Flags);
 
-			for (size_t i = 0; i < DirectX::BuffersCounts; i++) {
-				DirectX::FrameContext[i].CommandAllocator = Allocator;
+			for (size_t i = 0; i < DirectXHelper::BuffersCounts; i++) {
+				DirectXHelper::FrameContext[i].CommandAllocator = Allocator;
 			}
 
-			if (DirectX::Device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, Allocator, NULL, IID_PPV_ARGS(&DirectX::CommandList)) != S_OK ||
-				DirectX::CommandList->Close() != S_OK)
+			if (DirectXHelper::Device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, Allocator, NULL, IID_PPV_ARGS(&DirectXHelper::CommandList)) != S_OK ||
+				DirectXHelper::CommandList->Close() != S_OK)
 				return oPresent(pSwapChain, SyncInterval, Flags);
 
 			D3D12_DESCRIPTOR_HEAP_DESC DescriptorBackBuffers;
 			DescriptorBackBuffers.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-			DescriptorBackBuffers.NumDescriptors = DirectX::BuffersCounts;
+			DescriptorBackBuffers.NumDescriptors = DirectXHelper::BuffersCounts;
 			DescriptorBackBuffers.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 			DescriptorBackBuffers.NodeMask = 1;
 
-			if (DirectX::Device->CreateDescriptorHeap(&DescriptorBackBuffers, IID_PPV_ARGS(&DirectX::DescriptorHeapBackBuffers)) != S_OK)
+			if (DirectXHelper::Device->CreateDescriptorHeap(&DescriptorBackBuffers, IID_PPV_ARGS(&DirectXHelper::DescriptorHeapBackBuffers)) != S_OK)
 				return oPresent(pSwapChain, SyncInterval, Flags);
 
-			const auto RTVDescriptorSize = DirectX::Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-			D3D12_CPU_DESCRIPTOR_HANDLE RTVHandle = DirectX::DescriptorHeapBackBuffers->GetCPUDescriptorHandleForHeapStart();
+			const auto RTVDescriptorSize = DirectXHelper::Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+			D3D12_CPU_DESCRIPTOR_HANDLE RTVHandle = DirectXHelper::DescriptorHeapBackBuffers->GetCPUDescriptorHandleForHeapStart();
 
-			for (size_t i = 0; i < DirectX::BuffersCounts; i++) {
+			for (size_t i = 0; i < DirectXHelper::BuffersCounts; i++) {
 				ID3D12Resource* pBackBuffer = nullptr;
-				DirectX::FrameContext[i].DescriptorHandle = RTVHandle;
+				DirectXHelper::FrameContext[i].DescriptorHandle = RTVHandle;
 				pSwapChain->GetBuffer(i, IID_PPV_ARGS(&pBackBuffer));
-				DirectX::Device->CreateRenderTargetView(pBackBuffer, nullptr, RTVHandle);
-				DirectX::FrameContext[i].Resource = pBackBuffer;
+				DirectXHelper::Device->CreateRenderTargetView(pBackBuffer, nullptr, RTVHandle);
+				DirectXHelper::FrameContext[i].Resource = pBackBuffer;
 				RTVHandle.ptr += RTVDescriptorSize;
 			}
 
-			ImGui_ImplWin32_Init(DirectX::Hwnd);
-			ImGui_ImplDX12_Init(DirectX::Device, DirectX::BuffersCounts, DXGI_FORMAT_R8G8B8A8_UNORM, DirectX::DescriptorHeapImGuiRender, DirectX::DescriptorHeapImGuiRender->GetCPUDescriptorHandleForHeapStart(), DirectX::DescriptorHeapImGuiRender->GetGPUDescriptorHandleForHeapStart());
+			ImGui_ImplWin32_Init(DirectXHelper::Hwnd);
+			ImGui_ImplDX12_Init(DirectXHelper::Device, DirectXHelper::BuffersCounts, DXGI_FORMAT_R8G8B8A8_UNORM, DirectXHelper::DescriptorHeapImGuiRender, DirectXHelper::DescriptorHeapImGuiRender->GetCPUDescriptorHandleForHeapStart(), DirectXHelper::DescriptorHeapImGuiRender->GetGPUDescriptorHandleForHeapStart());
 			ImGui_ImplDX12_CreateDeviceObjects();
-			ImGui::GetIO().ImeWindowHandle = DirectX::Hwnd;
-			DirectX::WndProc = (WNDPROC)SetWindowLongPtr(DirectX::Hwnd, GWLP_WNDPROC, (__int3264)(LONG_PTR)WndProcFunc);
+			ImGui::GetIO().ImeWindowHandle = DirectXHelper::Hwnd;
+			DirectXHelper::WndProc = (WNDPROC)SetWindowLongPtr(DirectXHelper::Hwnd, GWLP_WNDPROC, (__int3264)(LONG_PTR)WndProcFunc);
 			Gui::setStyle();
 		}
 		ImGui_Initialised = true;
 	}
 
-	if (DirectX::CommandQueue == nullptr)
+	if (DirectXHelper::CommandQueue == nullptr)
 		return oPresent(pSwapChain, SyncInterval, Flags);
 
 
@@ -298,7 +298,7 @@ HRESULT APIENTRY DirectX::hkPresent(IDXGISwapChain3* pSwapChain, UINT SyncInterv
 	Gui::drawUi();
 	ImGui::EndFrame();
 
-	_FrameContext& CurrentFrameContext = DirectX::FrameContext[pSwapChain->GetCurrentBackBufferIndex()];
+	_FrameContext& CurrentFrameContext = DirectXHelper::FrameContext[pSwapChain->GetCurrentBackBufferIndex()];
 	CurrentFrameContext.CommandAllocator->Reset();
 
 	D3D12_RESOURCE_BARRIER Barrier;
@@ -309,35 +309,35 @@ HRESULT APIENTRY DirectX::hkPresent(IDXGISwapChain3* pSwapChain, UINT SyncInterv
 	Barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
 	Barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
 
-	DirectX::CommandList->Reset(CurrentFrameContext.CommandAllocator, nullptr);
-	DirectX::CommandList->ResourceBarrier(1, &Barrier);
-	DirectX::CommandList->OMSetRenderTargets(1, &CurrentFrameContext.DescriptorHandle, FALSE, nullptr);
-	DirectX::CommandList->SetDescriptorHeaps(1, &DirectX::DescriptorHeapImGuiRender);
+	DirectXHelper::CommandList->Reset(CurrentFrameContext.CommandAllocator, nullptr);
+	DirectXHelper::CommandList->ResourceBarrier(1, &Barrier);
+	DirectXHelper::CommandList->OMSetRenderTargets(1, &CurrentFrameContext.DescriptorHandle, FALSE, nullptr);
+	DirectXHelper::CommandList->SetDescriptorHeaps(1, &DirectXHelper::DescriptorHeapImGuiRender);
 
 	ImGui::Render();
-	ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), DirectX::CommandList);
+	ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), DirectXHelper::CommandList);
 	Barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
 	Barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
-	DirectX::CommandList->ResourceBarrier(1, &Barrier);
-	DirectX::CommandList->Close();
-	DirectX::CommandQueue->ExecuteCommandLists(1, reinterpret_cast<ID3D12CommandList* const*>(&DirectX::CommandList));
+	DirectXHelper::CommandList->ResourceBarrier(1, &Barrier);
+	DirectXHelper::CommandList->Close();
+	DirectXHelper::CommandQueue->ExecuteCommandLists(1, reinterpret_cast<ID3D12CommandList* const*>(&DirectXHelper::CommandList));
 	return oPresent(pSwapChain, SyncInterval, Flags);
 }
 
 
 
-void DirectX::hkExecuteCommandLists(ID3D12CommandQueue* queue, UINT NumCommandLists, ID3D12CommandList* ppCommandLists) {
-	if (!DirectX::CommandQueue)
-		DirectX::CommandQueue = queue;
+void DirectXHelper::hkExecuteCommandLists(ID3D12CommandQueue* queue, UINT NumCommandLists, ID3D12CommandList* ppCommandLists) {
+	if (!DirectXHelper::CommandQueue)
+		DirectXHelper::CommandQueue = queue;
 
-	DirectX::oExecuteCommandLists(queue, NumCommandLists, ppCommandLists);
+	DirectXHelper::oExecuteCommandLists(queue, NumCommandLists, ppCommandLists);
 }
 
-void APIENTRY DirectX::hkDrawInstanced(ID3D12GraphicsCommandList* dCommandList, UINT VertexCountPerInstance, UINT InstanceCount, UINT StartVertexLocation, UINT StartInstanceLocation) {
+void APIENTRY DirectXHelper::hkDrawInstanced(ID3D12GraphicsCommandList* dCommandList, UINT VertexCountPerInstance, UINT InstanceCount, UINT StartVertexLocation, UINT StartInstanceLocation) {
 
-	return DirectX::oDrawInstanced(dCommandList, VertexCountPerInstance, InstanceCount, StartVertexLocation, StartInstanceLocation);
+	return DirectXHelper::oDrawInstanced(dCommandList, VertexCountPerInstance, InstanceCount, StartVertexLocation, StartInstanceLocation);
 }
 
-void APIENTRY DirectX::hkDrawIndexedInstanced(ID3D12GraphicsCommandList* dCommandList, UINT IndexCountPerInstance, UINT InstanceCount, UINT StartIndexLocation, INT BaseVertexLocation, UINT StartInstanceLocation) {
-	return DirectX::oDrawIndexedInstanced(dCommandList, IndexCountPerInstance, InstanceCount, StartIndexLocation, BaseVertexLocation, StartInstanceLocation);
+void APIENTRY DirectXHelper::hkDrawIndexedInstanced(ID3D12GraphicsCommandList* dCommandList, UINT IndexCountPerInstance, UINT InstanceCount, UINT StartIndexLocation, INT BaseVertexLocation, UINT StartInstanceLocation) {
+	return DirectXHelper::oDrawIndexedInstanced(dCommandList, IndexCountPerInstance, InstanceCount, StartIndexLocation, BaseVertexLocation, StartInstanceLocation);
 }
