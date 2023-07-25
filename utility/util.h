@@ -8,8 +8,6 @@
 #include <cmath>
 #include <DirectXMath.h>
 
-#include "glm/glm.hpp"
-
 enum PacketType {
 	PositionUpdate
 };
@@ -60,8 +58,6 @@ public:
 	static void DisableAll();
 	static void createDebugConsole();
 	static uintptr_t FindDMAAddy(uintptr_t ptr, std::vector<unsigned int> offsets);
-	static glm::dmat3 createRotationMatrix(double yaw, double pitch);
-	static glm::dvec3 calculateRotations(double yaw, double pitch);
 	static void printMatrix(float matrix[16]);
 	static DirectX::XMFLOAT2 WorldToScreen(const DirectX::XMVECTOR& worldPos, const DirectX::XMMATRIX& viewMatrix, const DirectX::XMMATRIX& projectionMatrix, const UINT viewportWidth, const UINT viewportHeight);
 	static float convertHorizontalToVerticalFOV(float horizontalFOV, float aspectRatio);

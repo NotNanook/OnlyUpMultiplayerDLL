@@ -58,27 +58,6 @@ uintptr_t util::FindDMAAddy(uintptr_t ptr, std::vector<unsigned int> offsets) {
 	return addr;
 }
 
-glm::dmat3 util::createRotationMatrix(double yaw, double pitch) {
-	glm::dmat3 rotationMatrix;
-
-	double yawRadians = glm::radians(yaw);
-	double pitchRadians = glm::radians(pitch);
-
-	rotationMatrix[0][0] = cos(yawRadians);
-	rotationMatrix[0][1] = 0;
-	rotationMatrix[0][2] = sin(yawRadians);
-
-	rotationMatrix[1][0] = sin(pitchRadians) * sin(yawRadians);
-	rotationMatrix[1][1] = cos(pitchRadians);
-	rotationMatrix[1][2] = -sin(pitchRadians) * cos(yawRadians);
-
-	rotationMatrix[2][0] = -cos(pitchRadians) * sin(yawRadians);
-	rotationMatrix[2][1] = sin(pitchRadians);
-	rotationMatrix[2][2] = cos(pitchRadians) * cos(yawRadians);
-
-	return rotationMatrix;
-}
-
 void util::printMatrix(float matrix[16])
 {
 	for (int i = 0; i < 16; i+=4) {
@@ -87,16 +66,6 @@ void util::printMatrix(float matrix[16])
 		}
 		std::cout << std::endl;
 	}
-}
-
-glm::dvec3 util::calculateRotations(double yaw, double pitch) {
-	glm::dmat3 rotationMatrix = createRotationMatrix(yaw, pitch);
-
-	double xRotation = atan2(rotationMatrix[2][1], rotationMatrix[2][2]);
-	double yRotation = atan2(-rotationMatrix[2][0], sqrt(rotationMatrix[2][1] * rotationMatrix[2][1] + rotationMatrix[2][2] * rotationMatrix[2][2]));
-	double zRotation = atan2(rotationMatrix[1][0], rotationMatrix[0][0]);
-
-	return glm::dvec3(glm::degrees(xRotation), glm::degrees(yRotation), glm::degrees(zRotation));
 }
 
 DirectX::XMFLOAT2 util::WorldToScreen(const DirectX::XMVECTOR& worldPos, const DirectX::XMMATRIX& viewMatrix, const DirectX::XMMATRIX& projectionMatrix, const UINT viewportWidth, const UINT viewportHeight)
