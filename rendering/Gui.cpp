@@ -10,7 +10,7 @@
 ImGuiWindowFlags window_flags = 0;
 ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_None;
 
-int fov = 80;
+int fov = 78;
 
 namespace Gui {
     bool isEnabled = false;
@@ -29,6 +29,20 @@ namespace Gui {
         if (flag) {
             ImGui::PopItemFlag();
             ImGui::PopStyleVar();
+        }
+    }
+
+    float calculateRadius(float distance, float minRadius, float maxRadius) {
+        if (distance <= 100) {
+            return maxRadius;
+        }
+        else if (distance >= 20000) {
+            return minRadius;
+        }
+        else {
+            float scaleFactor = (distance - 100) / (20000 - 100);
+            float scaledRadius = (1 - scaleFactor) * maxRadius + scaleFactor * minRadius;
+            return scaledRadius;
         }
     }
 
@@ -97,9 +111,10 @@ namespace Gui {
             DirectX::XMVECTOR cameraPosition = DirectX::XMVectorSet(*(float*)(camPosPointer), *(float*)(camPosPointer + 0x40), *(float*)(camPosPointer + 0x20), 1.0f);
             
             if (pitch > 260) pitch -= 360;
-            float pitchRad = util::degreesToRadians(pitch);
             if (yaw < 360 && yaw > 180) yaw -= 360;
-            float yawRad = util::degreesToRadians(yaw);
+
+            float yawRad = DirectX::XMConvertToRadians(yaw);
+            float pitchRad = DirectX::XMConvertToRadians(pitch);
 
             float cosYaw = cosf(yawRad);
             float sinYaw = sinf(yawRad);
@@ -117,15 +132,29 @@ namespace Gui {
             // Calculate the view matrix
             DirectX::XMMATRIX viewMatrix = DirectX::XMMatrixLookAtLH(cameraPosition, target, up);
 
-            DirectX::XMMATRIX projectionMatrix = DirectX::XMMatrixPerspectiveFovLH(util::degreesToRadians(fov), ImGui::GetIO().DisplaySize.x / ImGui::GetIO().DisplaySize.y, 1.0f, 100.0f);
+            DirectX::XMMATRIX projectionMatrix = DirectX::XMMatrixPerspectiveFovLH(DirectX::XMConvertToRadians(fov), ImGui::GetIO().DisplaySize.x / ImGui::GetIO().DisplaySize.y, 1.0f, 100.0f);
 
             PositionManager::m.lock();
             DirectX::XMVECTOR otherPlayerPos = DirectX::XMVectorSet(PositionManager::mirrorPlayer.lastPosition.x, PositionManager::mirrorPlayer.lastPosition.y, PositionManager::mirrorPlayer.lastPosition.z, 1.0f);
+            DirectX::XMVECTOR otherPlayerPos2 = DirectX::XMVectorSet(PositionManager::mirrorPlayer.lastPosition.x, PositionManager::mirrorPlayer.lastPosition.y+60.0f, PositionManager::mirrorPlayer.lastPosition.z, 1.0f);
+            //DirectX::XMVECTOR otherPlayerPos = DirectX::XMVectorSet(4000.0f, -2700.0f, 18000.0f, 1.0f);
+            //DirectX::XMVECTOR otherPlayerPos2 = DirectX::XMVectorSet(4000.0f, -2640.0f, 18000.0f, 1.0f); // Name is 60 units above circle
             PositionManager::m.unlock();
 
-            DirectX::XMFLOAT2 screenPos = util::WorldToScreen(otherPlayerPos, viewMatrix, projectionMatrix, ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y);
+            float distance = std::sqrtf((std::pow(4000.0f - PositionManager::localPlayerPos.x, 2) +
+                std::pow(-2700.0f - PositionManager::localPlayerPos.y, 2) +
+                std::pow(18000.0f - PositionManager::localPlayerPos.z, 2)));
 
-            drawList->AddCircleFilled(ImVec2(screenPos.x, screenPos.y), 10, ImColor(255, 255, 255, 255));
+            float scaledRadius = calculateRadius(distance, 2, 8);
+
+            DirectX::XMFLOAT2 screenPos = util::WorldToScreen(otherPlayerPos, viewMatrix, projectionMatrix, ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y);
+            DirectX::XMFLOAT2 screenPosText = util::WorldToScreen(otherPlayerPos2, viewMatrix, projectionMatrix, ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y);
+
+            if (screenPos.x == -1 && screenPos.y == -1) return;
+
+            drawList->AddCircleFilled(ImVec2(screenPos.x, screenPos.y), scaledRadius, ImColor(255, 255, 255, 255));
+            ImVec2 textSize = ImGui::CalcTextSize(PositionManager::mirrorPlayer.playerName);
+            drawList->AddText(ImVec2(screenPosText.x - textSize.x/2, screenPosText.y - textSize.x/2), ImColor(255, 255, 255, 255), PositionManager::mirrorPlayer.playerName);
 
         }
     }

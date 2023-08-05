@@ -1,5 +1,6 @@
 #include "util.h"
 #include "DirectX.h"
+#include <cassert>
 
 bool util::CreateHook(uint16_t Index, void** Original, void* Function) {
 	assert(_index >= 0 && _original != NULL && _function != NULL);
@@ -58,16 +59,6 @@ uintptr_t util::FindDMAAddy(uintptr_t ptr, std::vector<unsigned int> offsets) {
 	return addr;
 }
 
-void util::printMatrix(float matrix[16])
-{
-	for (int i = 0; i < 16; i+=4) {
-		for (int j = 0; j < 4; j++) {
-			std::cout << matrix[i+j] << " | ";
-		}
-		std::cout << std::endl;
-	}
-}
-
 DirectX::XMFLOAT2 util::WorldToScreen(const DirectX::XMVECTOR& worldPos, const DirectX::XMMATRIX& viewMatrix, const DirectX::XMMATRIX& projectionMatrix, const UINT viewportWidth, const UINT viewportHeight)
 {
 	// Convert world position to clip space
@@ -77,6 +68,9 @@ DirectX::XMFLOAT2 util::WorldToScreen(const DirectX::XMVECTOR& worldPos, const D
 	// Convert clip space to NDC space
 	DirectX::XMFLOAT4 clipSpacePosFloat;
 	DirectX::XMStoreFloat4(&clipSpacePosFloat, clipSpacePos);
+
+	if (clipSpacePosFloat.z >= 1.01f)
+		return DirectX::XMFLOAT2(-1, -1);
 
 	DirectX::XMFLOAT3 ndcSpacePos = DirectX::XMFLOAT3(clipSpacePosFloat.x / clipSpacePosFloat.w, clipSpacePosFloat.y / clipSpacePosFloat.w, clipSpacePosFloat.z / clipSpacePosFloat.w);
 
@@ -99,10 +93,6 @@ Vec3 util::vectorSubtract(Vec3 vec1, Vec3 vec2) {
 	diff.y = vec1.y - vec2.y;
 	diff.z = vec1.z - vec2.z;
 	return diff;
-}
-
-float util::degreesToRadians(float degrees) {
-	return degrees * (3.14159265358979323846f / 180);
 }
 
 Vec3 util::crossProduct(const Vec3 a, const Vec3 b) {

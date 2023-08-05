@@ -17,7 +17,7 @@ int clientSocket;
 const std::chrono::nanoseconds targetDuration(50000000);
 std::chrono::time_point<std::chrono::steady_clock> startTime;
 
-void waitPacketSent() {
+void waitSendDelay() {
 	auto elapsedTime = std::chrono::steady_clock::now() - startTime;
 	auto remainingTime = targetDuration - elapsedTime;
 	if (remainingTime > std::chrono::nanoseconds::zero()) {
@@ -31,12 +31,10 @@ void PositionManager::init() {
 }
 
 void PositionManager::networkLoop() {
-	int numPacketsSent = 0;
-
 	struct timeval timeout;
 	fd_set fds;
 	timeout.tv_sec = 0;
-	timeout.tv_usec = 500000;
+	timeout.tv_usec = 5000000;
 
 	FD_ZERO(&fds);
 	FD_SET(clientSocket, &fds);
@@ -46,7 +44,6 @@ void PositionManager::networkLoop() {
 
 		char buffer[sizeof(PositionPacket)] = {};
 		PositionPacket packet = PositionPacket();
-		packet.num = numPacketsSent;
 		packet.packetType = PositionUpdate;
 		memcpy(&packet.playerName, PositionManager::username, sizeof(PositionManager::username));
 
@@ -70,7 +67,6 @@ void PositionManager::networkLoop() {
 			break;
 		}
 
-		numPacketsSent++;
 		PositionManager::connected = true;
 		PositionManager::lobbyFull = false;
 
@@ -78,9 +74,11 @@ void PositionManager::networkLoop() {
 		int clientAddrLen = sizeof(clientAddr);
 		ZeroMemory(&buffer, sizeof(PositionPacket));
 
+		timeout.tv_sec = 0;
+		timeout.tv_usec = 5000000;
 		int result = select(0, &fds, 0, 0, &timeout);
 		if (result == SOCKET_ERROR || result == 0) {
-			waitPacketSent();
+			waitSendDelay();
 			continue;
 		}
 
@@ -103,7 +101,7 @@ void PositionManager::networkLoop() {
 		PositionManager::mirrorPlayer.lastPosition = recvPacket.position;
 		PositionManager::m.unlock();
 
-		waitPacketSent();
+		waitSendDelay();
 	}
 
 	PositionManager::disconnect();
@@ -144,4 +142,5 @@ void PositionManager::disconnect() {
 	closesocket(clientSocket);
 	WSACleanup();
 	PositionManager::connected = false;
+	PositionManager::mirrorPlayer.lastPosition = Vec3();
 }

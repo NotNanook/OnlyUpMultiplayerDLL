@@ -6,7 +6,7 @@ DWORD WINAPI MainThread(LPVOID lpParameter) {
 	DirectXHelper::hookDirectX();
 	util::createDebugConsole();
 	PositionManager::init();
-	return 0;
+	return EXIT_SUCCESS;
 }
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD dwReason, LPVOID lpReserved) {

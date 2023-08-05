@@ -41,7 +41,6 @@ struct Vec4 {
 
 struct PositionPacket {
 	PacketType packetType;
-	uint32_t num;
 	char playerName[32];
 	Vec3 position;
 };
@@ -58,12 +57,10 @@ public:
 	static void DisableAll();
 	static void createDebugConsole();
 	static uintptr_t FindDMAAddy(uintptr_t ptr, std::vector<unsigned int> offsets);
-	static void printMatrix(float matrix[16]);
 	static DirectX::XMFLOAT2 WorldToScreen(const DirectX::XMVECTOR& worldPos, const DirectX::XMMATRIX& viewMatrix, const DirectX::XMMATRIX& projectionMatrix, const UINT viewportWidth, const UINT viewportHeight);
 	static float convertHorizontalToVerticalFOV(float horizontalFOV, float aspectRatio);
 	static Vec3 vectorSubtract(Vec3 vec1, Vec3 vec2);
 	static Vec3 crossProduct(const Vec3 a, const Vec3 b);
 	static Vec3 getSafeNormal(const Vec3 vec, float tolerance = 1e-8);
-	static float degreesToRadians(float degrees);
 	static float dotProduct(const Vec3 vec1, const Vec3 vec2);
 };
