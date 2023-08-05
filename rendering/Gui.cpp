@@ -141,9 +141,9 @@ namespace Gui {
             //DirectX::XMVECTOR otherPlayerPos2 = DirectX::XMVectorSet(4000.0f, -2640.0f, 18000.0f, 1.0f); // Name is 60 units above circle
             PositionManager::m.unlock();
 
-            float distance = std::sqrtf((std::pow(4000.0f - PositionManager::localPlayerPos.x, 2) +
-                std::pow(-2700.0f - PositionManager::localPlayerPos.y, 2) +
-                std::pow(18000.0f - PositionManager::localPlayerPos.z, 2)));
+            float distance = std::sqrtf((std::pow(DirectX::XMVectorGetX(otherPlayerPos) - PositionManager::localPlayerPos.x, 2) +
+                std::pow(DirectX::XMVectorGetY(otherPlayerPos) - PositionManager::localPlayerPos.y, 2) +
+                std::pow(DirectX::XMVectorGetZ(otherPlayerPos) - PositionManager::localPlayerPos.z, 2)));
 
             float scaledRadius = calculateRadius(distance, 2, 8);
 
